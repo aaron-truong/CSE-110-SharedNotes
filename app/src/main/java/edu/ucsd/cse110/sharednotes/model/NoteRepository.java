@@ -114,15 +114,22 @@ public class NoteRepository {
         // TODO: Implement getRemote!
         // TODO: Set up polling background thread (MutableLiveData?)
         // TODO: Refer to TimerService from https://github.com/DylanLukes/CSE-110-WI23-Demo5-V2.
-        if(future != null) future.cancel(false);
+        if(future != null) future.cancel(true);
+//        long time = Instant.now().getEpochSecond();
         var note = new MutableLiveData<Note>();
-//        Executors.newSingleThreadExecutor().submit(() -> note.postValue(api.getNote(title)));
+
+        Executors.newSingleThreadExecutor().submit(() -> {
+            var noteValue = new Note(title, api.getNote(title).content, Instant.now().getEpochSecond());
+            note.postValue(noteValue);
+
+        });
 //        note.setValue(api.getNote(title));
+
         Runnable runner = () -> {
             try {
                 var noteValue = new Note(title, api.getNoteAsync(title).get().content, Instant.now().getEpochSecond());
-                note.postValue(noteValue);
-                Log.d("VALUE", note.getValue().toJSON());
+                if(!noteValue.content.equals(note.getValue().content)) note.postValue(noteValue);
+//                Log.d("VALUE", note.getValue().toJSON());
             } catch(Exception e) {
                 e.printStackTrace();
             }

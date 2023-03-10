@@ -33,7 +33,7 @@ public class NoteViewModel extends AndroidViewModel {
 
 //        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(runner, 3, 3, TimeUnit.SECONDS);
 
-        note = repo.getSynced(title);
+        if(note == null) note = repo.getSynced(title);
         try {
             Log.d("VALUE2", note.getValue().toJSON());
         } catch(Exception e) {e.printStackTrace();}
