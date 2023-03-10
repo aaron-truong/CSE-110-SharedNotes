@@ -5,14 +5,22 @@ import android.util.Log;
 import androidx.annotation.AnyThread;
 import androidx.annotation.MainThread;
 import androidx.annotation.WorkerThread;
+import androidx.lifecycle.LiveData;
 
 import com.google.gson.Gson;
 
+import java.io.IOException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
 
 public class NoteAPI {
     // TODO: Implement the API using OkHttp!
@@ -34,6 +42,40 @@ public class NoteAPI {
             instance = new NoteAPI();
         }
         return instance;
+    }
+
+    public void putNote(Note note) {
+        RequestBody body = RequestBody.create(note.toJSON(), MediaType.get("application/json; charset=utf-8"));
+        var request = new Request.Builder()
+                .url("https://sharednotes.goto.ucsd.edu/notes/" + note.title)
+                .method("PUT", body)
+                .build();
+        try(var response = client.newCall(request).execute()) {
+            Log.d("RESPONSE", response.body().string());
+        } catch(IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    public Future<Note> getNoteAsync(String title) {
+        var executor = Executors.newSingleThreadExecutor();
+        var future = executor.submit(() -> getNote(title));
+        return future;
+    }
+    public Note getNote(String title) {
+        var request = new Request.Builder()
+                .url("https://sharednotes.goto.ucsd.edu/notes/" + title)
+                .method("GET", null)
+                .build();
+
+        try (var response = client.newCall(request).execute()) {
+            assert response.body() != null;
+            var body = response.body().string();
+            return Note.fromJSON(body);
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     /**

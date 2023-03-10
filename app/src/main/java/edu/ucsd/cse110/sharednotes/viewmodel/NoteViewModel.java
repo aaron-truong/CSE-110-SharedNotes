@@ -1,10 +1,13 @@
 package edu.ucsd.cse110.sharednotes.viewmodel;
 
 import android.app.Application;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
+
+import java.util.concurrent.Executors;
 
 import edu.ucsd.cse110.sharednotes.model.Note;
 import edu.ucsd.cse110.sharednotes.model.NoteDatabase;
@@ -27,14 +30,18 @@ public class NoteViewModel extends AndroidViewModel {
         // The returned live data should update whenever there is a change in
         // the database, or when the server returns a newer version of the note.
         // Polling interval: 3s.
-        if (note == null) {
-            note = repo.getLocal(title);
-        }
+
+//        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(runner, 3, 3, TimeUnit.SECONDS);
+
+        note = repo.getSynced(title);
+        try {
+            Log.d("VALUE2", note.getValue().toJSON());
+        } catch(Exception e) {e.printStackTrace();}
         return note;
     }
 
     public void save(Note note) {
         // TODO: try to upload the note to the server.
-        repo.upsertLocal(note);
+        repo.upsertSynced(note);
     }
 }
